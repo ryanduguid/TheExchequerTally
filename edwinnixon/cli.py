@@ -5,6 +5,7 @@ CLI interface for EdwinNixon.
 import argparse
 import sys
 from datetime import date
+from decimal import Decimal
 from .decimal_args import decimal_type
 from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate
 from .franking_account import FrankingAccount
