@@ -1,4 +1,4 @@
-# EdwinNixon
+# The Exchequer Tally
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -6,7 +6,9 @@
 
 **Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
 
-Named after **Sir Edwin Van-der-Vord Nixon CMG (1876–1955)**, prominent Australian chartered accountant, chair of the Commonwealth Royal Commission on Taxation, and pioneer of modern Australian corporate accounting and tax policy.
+Named after the Exchequer tally, the notched stick the English Exchequer used to record tax from the twelfth century to the nineteenth. Each stick was split lengthwise so both parties held a matching half, and because neither half could take a new notch without the other exposing it, the record survived verification rather than relying on trust. A franking account is the same instrument in ledger form: evidence that tax has already been paid, worth only as much as it survives being checked.
+
+Installed as the `exchequer-tally` distribution, imported as `exchequertally`, and run as `frank-check`.
 
 ---
 
@@ -30,10 +32,10 @@ pip install .
 ### CLI Usage
 ```bash
 # Evaluate Base Rate Entity (BRE) status for FY2025
-edwinnixon bre-test --fy 2025 --turnover 4500000 --assessable 800000 --passive 120000
+frank-check bre-test --fy 2025 --turnover 4500000 --assessable 800000 --passive 120000
 
 # Generate a dividend distribution statement
-edwinnixon dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient "Jane Doe" --amount 15000 --franking-pct 100 --tax-rate 0.25
+frank-check dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient "Jane Doe" --amount 15000 --franking-pct 100 --tax-rate 0.25
 ```
 
 ---

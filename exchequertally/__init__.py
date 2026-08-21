@@ -1,5 +1,5 @@
 """
-EdwinNixon: Corporate Tax & Franking Account Imputation Engine
+TheExchequerTally: Corporate Tax & Franking Account Imputation Engine
 Named after Sir Edwin Van-der-Vord Nixon CMG (1876–1955), pioneer of Australian corporate accounting and taxation policy.
 """
 

@@ -1,5 +1,5 @@
 """
-CLI interface for EdwinNixon.
+CLI interface for TheExchequerTally.
 """
 
 import argparse
@@ -13,8 +13,8 @@ from .distribution_statement import generate_distribution_statement
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="edwinnixon",
-        description="EdwinNixon: Corporate Tax Rate & Franking Account Engine for Australian Companies",
+        prog="frank-check",
+        description="TheExchequerTally: Corporate Tax Rate & Franking Account Engine for Australian Companies",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 

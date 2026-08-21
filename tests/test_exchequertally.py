@@ -1,9 +1,9 @@
 from datetime import date
 from decimal import Decimal
-from edwinnixon.corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, determine_max_franking_rate
-from edwinnixon.franking_account import FrankingAccount, FrankingEntryType
-from edwinnixon.benchmark_rule import BenchmarkRuleValidator, DistributionEvent
-from edwinnixon.distribution_statement import generate_distribution_statement
+from exchequertally.corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, determine_max_franking_rate
+from exchequertally.franking_account import FrankingAccount, FrankingEntryType
+from exchequertally.benchmark_rule import BenchmarkRuleValidator, DistributionEvent
+from exchequertally.distribution_statement import generate_distribution_statement
 
 def test_base_rate_entity_eligibility():
     # Eligible BRE (< $50M and passive <= 80%)
