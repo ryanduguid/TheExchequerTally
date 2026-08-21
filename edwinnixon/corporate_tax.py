@@ -63,15 +63,26 @@ class CorporateTaxRate:
     statutory_basis: str
 
 
+def bre_rate_for(fy: int) -> Decimal:
+    try:
+        return BRE_RATES[fy]
+    except KeyError as exc:
+        raise ValueError(
+            f"No legislated BRE rate is tabulated for FY{fy}"
+        ) from exc
+
+
 def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
     """
     Determine the company tax rate under s23AA Income Tax Rates Act 1986.
     """
     fy = test.financial_year
     is_bre = test.is_base_rate_entity
+    if fy not in BRE_RATES:
+        raise ValueError(f"No legislated company-rate table exists for FY{fy}")
 
     if is_bre:
-        rate = BRE_RATES.get(fy, Decimal("0.250"))
+        rate = bre_rate_for(fy)
         desc = f"Base Rate Entity ({rate * 100:.1f}%)"
         basis = "s 23AA Income Tax Rates Act 1986; turnover < $50M and BREPI <= 80%"
     else:
@@ -100,9 +111,10 @@ def determine_max_franking_rate(
     determined based on the company's Base Rate Entity status in year N-1.
     If the company did not exist in year N-1, the tax rate for year N is used.
     """
-    if prior_year_test is not None:
-        prior_res = determine_corporate_tax_rate(prior_year_test)
-        return prior_res.applicable_rate
-
-    # Default to current year standard or BRE baseline if prior year unknown
-    return BRE_RATES.get(current_fy, Decimal("0.250"))
+    if prior_year_test is None:
+        raise ValueError(
+            f"prior_year_test is required for FY{current_fy}; "
+            "the maximum franking rate is not assumed"
+        )
+    prior_res = determine_corporate_tax_rate(prior_year_test)
+    return prior_res.applicable_rate
