@@ -1,4 +1,4 @@
-﻿"""
+"""
 Distribution Statement generation under Sections 202-75 and 202-80 of the ITAA 1997.
 """
 
