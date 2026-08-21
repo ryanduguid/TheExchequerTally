@@ -1,4 +1,4 @@
-﻿"""
+"""
 Division 203 Benchmark Rule compliance under Sections 203-25 to 203-55 of the ITAA 1997.
 Ensures all frankable distributions within a franking period bear the same franking percentage.
 """
