@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edwinnixon"
-version = "0.1.0"
+version = "0.1.1"
 description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,33 +12,14 @@ license = "MIT"
 authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
 ]
-keywords = [
-    "australian-tax",
-    "franking-credits",
-    "corporate-tax",
-    "imputation-system",
-    "base-rate-entity",
-    "itaa1997",
-    "accounting",
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Financial and Insurance Industry",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Office/Business :: Financial :: Accounting",
-]
-dependencies = [
-    "pydantic>=2.0.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
+    "ruff>=0.11",
+    "mypy>=1.14",
 ]
 
 [project.scripts]
@@ -50,3 +31,13 @@ packages = ["edwinnixon"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = "--cov=edwinnixon --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+src = ["edwinnixon", "tests"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["edwinnixon"]
+pretty = true
