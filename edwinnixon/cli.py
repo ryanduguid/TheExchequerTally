@@ -5,7 +5,7 @@ CLI interface for EdwinNixon.
 import argparse
 import sys
 from datetime import date
-from decimal import Decimal
+from .decimal_args import decimal_type
 from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate
 from .franking_account import FrankingAccount
 from .distribution_statement import generate_distribution_statement
@@ -21,18 +21,18 @@ def main() -> int:
     # Command: bre-test
     bre_parser = subparsers.add_parser("bre-test", help="Test Base Rate Entity (BRE) eligibility under s 23AA ITRA 1986")
     bre_parser.add_argument("--fy", type=int, required=True, help="Financial Year ending (e.g. 2025)")
-    bre_parser.add_argument("--turnover", type=Decimal, required=True, help="Aggregated turnover ($)")
-    bre_parser.add_argument("--assessable", type=Decimal, required=True, help="Total assessable income ($)")
-    bre_parser.add_argument("--passive", type=Decimal, required=True, help="Base Rate Entity Passive Income ($)")
+    bre_parser.add_argument("--turnover", type=decimal_type, required=True, help="Aggregated turnover ($)")
+    bre_parser.add_argument("--assessable", type=decimal_type, required=True, help="Total assessable income ($)")
+    bre_parser.add_argument("--passive", type=decimal_type, required=True, help="Base Rate Entity Passive Income ($)")
 
     # Command: dist-statement
     dist_parser = subparsers.add_parser("dist-statement", help="Generate distribution statement details")
     dist_parser.add_argument("--entity", type=str, required=True, help="Company name")
     dist_parser.add_argument("--acn", type=str, required=True, help="ACN or ABN")
     dist_parser.add_argument("--recipient", type=str, required=True, help="Shareholder name")
-    dist_parser.add_argument("--amount", type=Decimal, required=True, help="Total dividend distribution ($)")
-    dist_parser.add_argument("--franking-pct", type=Decimal, default=Decimal("100.00"), help="Franking percentage (e.g. 100)")
-    dist_parser.add_argument("--tax-rate", type=Decimal, default=Decimal("0.25"), help="Corporate tax rate (0.25 or 0.30)")
+    dist_parser.add_argument("--amount", type=decimal_type, required=True, help="Total dividend distribution ($)")
+    dist_parser.add_argument("--franking-pct", type=decimal_type, default=Decimal("100.00"), help="Franking percentage (e.g. 100)")
+    dist_parser.add_argument("--tax-rate", type=decimal_type, default=Decimal("0.25"), help="Corporate tax rate (0.25 or 0.30)")
 
     args = parser.parse_args()
 

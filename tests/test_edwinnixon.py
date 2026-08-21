@@ -116,3 +116,27 @@ def test_distribution_statement_generation():
     # 10000 * (0.25 / 0.75) = 3333.33
     assert stmt.franking_credit == Decimal("3333.33")
     assert stmt.gross_assessable_income == Decimal("13333.33")
+
+
+def test_unknown_financial_year_is_refused():
+    unknown = BaseRateEntityTest(
+        financial_year=2010,
+        aggregated_turnover=Decimal("1000000.00"),
+        assessable_income=Decimal("100000.00"),
+        passive_income=Decimal("10000.00"),
+    )
+    try:
+        determine_corporate_tax_rate(unknown)
+    except ValueError as exc:
+        assert "FY2010" in str(exc)
+    else:
+        raise AssertionError("unknown years must not receive a guessed rate")
+
+
+def test_max_franking_rate_requires_prior_year():
+    try:
+        determine_max_franking_rate(2025)
+    except ValueError as exc:
+        assert "prior_year_test" in str(exc)
+    else:
+        raise AssertionError("franking rate must not assume BRE")
