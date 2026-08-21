@@ -1,4 +1,4 @@
-﻿"""
+"""
 Franking account ledger, balance tracking, and Franking Deficit Tax (FDT) calculations
 under Part 3-6 (Divisions 205 and 214) of the Income Tax Assessment Act 1997.
 """

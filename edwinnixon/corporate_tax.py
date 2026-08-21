@@ -1,4 +1,4 @@
-﻿"""
+"""
 Corporate tax rate determination and Base Rate Entity (BRE) test under
 Sections 23AA & 23AB of the Income Tax Rates Act 1986 and Division 328 ITAA 1997.
 """
