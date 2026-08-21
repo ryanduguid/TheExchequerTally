@@ -1,4 +1,4 @@
-# TheExchequerTally
+Corporate tax rate determination (Base Rate Entity test), Franking Account Balance (FAB) tracking, and Division 203 benchmark compliance.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
