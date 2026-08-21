@@ -1,4 +1,4 @@
-# EdwinNixon
+# TheExchequerTally
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -6,7 +6,9 @@
 
 **Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
 
-Named after **Sir Edwin Van-der-Vord Nixon CMG (1876–1955)**, prominent Australian chartered accountant, chair of the Commonwealth Royal Commission on Taxation, and pioneer of modern Australian corporate accounting and tax policy.
+The repository name is the public project identity; the `edwinnixon` distribution and command remain compatibility identifiers.
+
+Named after **Sir Edwin Van-der-Vord Nixon CMG (1876–1955)**, prominent Australian chartered accountant, commissioner on the Commonwealth Royal Commission on Taxation (1932–34), and pioneer of modern Australian corporate accounting and tax policy.
 
 ---
 
