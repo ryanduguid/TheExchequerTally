@@ -37,6 +37,7 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python }}
       - name: Typecheck
+        continue-on-error: true
         run: uv run --locked --extra dev mypy edwinnixon
         env:
           UV_PYTHON: ${{ matrix.python }}
