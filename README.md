@@ -13,7 +13,7 @@ Installed as the `exchequer-tally` distribution, imported as `exchequertally`, a
 
 ---
 
-## 🔍 Core Features
+## Core Features
 
 - **Base Rate Entity (BRE) Testing**: Deterministic assessment under *s 23AA & s 23AB Income Tax Rates Act 1986* (evaluating aggregated turnover thresholds and Base Rate Entity Passive Income ratios).
 - **Franking Account Ledger (FAB)**: Complete balance management under *Part 3-6 ITAA 1997*, tracking PAYG instalments, company tax payments, dividends paid/received, and tax refunds.
@@ -23,7 +23,7 @@ Installed as the `exchequer-tally` distribution, imported as `exchequertally`, a
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Installation
 ```bash
@@ -41,7 +41,7 @@ frank-check dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient
 
 ---
 
-## 📐 Statutory Ground Truth & Test Harness
+## Statutory Ground Truth & Test Harness
 
 All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic to guarantee zero floating-point drift across corporate tax and franking schedules.
 
@@ -59,5 +59,5 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 
 ---
 
-## ⚖️ License
+## Licence
 MIT License. Created by Ryan Duguid.
