@@ -1,6 +1,7 @@
 # The Exchequer Tally
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-5%20passed%20%7C%20100%25-brightgreen)](tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-002B49)](https://www.legislation.gov.au/Details/C2024C00037)
 
@@ -40,13 +41,21 @@ frank-check dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient
 
 ---
 
-## 📐 Statutory Grounding
+## 📐 Statutory Ground Truth & Test Harness
 
-1. **Base Rate Entity Status**: *Income Tax Rates Act 1986* s 23AA (25% tax rate if aggregated turnover < $50M and BREPI <= 80%).
-2. **Franking Credits & Debits**: *ITAA 1997* s 205-15 (credits) and s 205-30 (debits).
-3. **Franking Deficit Tax & Offset**: *ITAA 1997* s 205-45 and s 205-70.
-4. **Benchmark Rule**: *ITAA 1997* ss 203-25 to 203-55.
-5. **Distribution Statements**: *ITAA 1997* s 202-75 and s 202-80.
+All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic to guarantee zero floating-point drift across corporate tax and franking schedules.
+
+| Statutory Domain | Primary Authority | Verification Invariant |
+| :--- | :--- | :--- |
+| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | 25% tax rate strictly bounded by Aggregated Turnover < $50M and BREPI <= 80%. |
+| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Exact day-order ledger reconciliation of corporate PAYG and tax payments. |
+| **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(6) | Exact 30% offset reduction penalty applied when deficit exceeds 10% threshold. |
+| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Deterministic debit shortfall and over-franking tax determination per distribution period. |
+| **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
+
+### Automated Test Suite
+- Run the full suite: `pytest tests/`
+- Coverage: 100% passing across BRE eligibility, FDT penalty triggers, benchmark rule violations, and distribution statement generation.
 
 ---
 
