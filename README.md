@@ -1,9 +1,9 @@
 # The Exchequer Tally
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/TheExchequerTally/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/TheExchequerTally/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-002B49)](https://www.legislation.gov.au/C2004A05138/latest/text)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
+[![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C2004A05138/latest/text)
 
 **Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
 
