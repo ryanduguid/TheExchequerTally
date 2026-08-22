@@ -1,7 +1,7 @@
 # The Exchequer Tally
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-5%20passed%20%7C%20100%25-brightgreen)](tests)
+[![tests](https://github.com/ryanduguid/TheExchequerTally/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/TheExchequerTally/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-002B49)](https://www.legislation.gov.au/C2004A05138/latest/text)
 
