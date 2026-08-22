@@ -19,7 +19,7 @@ Named after **Sir Edwin Van-der-Vord Nixon CMG (1876 to 1955)**, prominent Austr
 - **Franking Account Ledger (FAB)**: Complete balance management under *Part 3-6 ITAA 1997*, tracking PAYG instalments, company tax payments, dividends paid/received, and tax refunds.
 - **Franking Deficit Tax (FDT) & Offset Penalty**: Evaluates FDT liability under *s 205-45* and calculates the 30% tax offset reduction penalty under *s 205-70(6)* where the deficit exceeds 10% of annual credits.
 - **Division 203 Benchmark Rule Engine**: Detects over-franking tax (*s 203-50(1)*) and franking debit shortfalls (*s 203-50(2)*) across distributions in a franking period.
-- **Dividend Distribution Statements**: Generates compliant Australian distribution statements under *s 202-75 / s 202-80*.
+- **Dividend Distribution Statements**: Builds the statement fields required by *s 202-75 / s 202-80*. This is a review helper, not a lodgment and not a compliance certificate.
 
 ---
 
@@ -55,7 +55,7 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 
 ### Automated Test Suite
 - Run the full suite: `pytest tests/`
-- Coverage: 100% passing across BRE eligibility, FDT penalty triggers, benchmark rule violations, and distribution statement generation.
+- The suite covers BRE eligibility, FDT penalty triggers, benchmark-rule checks, and distribution-statement generation. Do not treat a static badge as live coverage.
 
 ---
 
