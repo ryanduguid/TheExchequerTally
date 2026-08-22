@@ -1,9 +1,18 @@
 """
-EdwinNixon: Corporate Tax & Franking Account Imputation Engine
-Named after Sir Edwin Van-der-Vord Nixon CMG (1876–1955), pioneer of Australian corporate accounting and taxation policy.
+The Exchequer Tally: corporate tax rate, franking account and Division 203
+benchmark engine for Australian companies. The distribution keeps its
+package name `edwinnixon`, after Sir Edwin Van-der-Vord Nixon CMG
+(1876-1955), pioneer of Australian corporate accounting and taxation policy.
+
+Outputs are review aids, not tax advice or determinations.
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version as _dist_version
+
+try:
+    __version__ = _dist_version("edwinnixon")
+except PackageNotFoundError:  # running from a source tree without installation
+    __version__ = "0.0.0.dev0"
 __author__ = "Ryan Duguid"
 
 from .corporate_tax import (
