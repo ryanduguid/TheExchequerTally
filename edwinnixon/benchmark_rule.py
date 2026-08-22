@@ -18,20 +18,27 @@ class DistributionEvent:
     corporate_tax_rate: Decimal = Decimal("0.25")
 
     @property
-    def franking_percentage(self) -> Decimal:
-        """
-        Calculate actual franking percentage (s 203-35).
-        Franking percentage = (franking credit attached) / (maximum franking credit possible) * 100
-        Maximum franking credit = distribution_amount * (tax_rate / (1 - tax_rate))
-        """
+    def maximum_franking_credit(self) -> Decimal:
+        """Maximum credit for this distribution at this event's rate (s 202-60)."""
         if self.distribution_amount <= Decimal("0.00"):
             return Decimal("0.00")
+        return self.distribution_amount * (
+            self.corporate_tax_rate / (Decimal("1.00") - self.corporate_tax_rate)
+        )
 
-        max_credit = self.distribution_amount * (self.corporate_tax_rate / (Decimal("1.00") - self.corporate_tax_rate))
+    @property
+    def franking_percentage(self) -> Decimal:
+        """
+        Calculate actual franking percentage (s 203-35), capped at 100%: a
+        credit above the s 202-60 maximum does not raise the percentage past
+        fully franked, so an over-credited first distribution cannot set a
+        benchmark above 100%.
+        """
+        max_credit = self.maximum_franking_credit
         if max_credit <= Decimal("0.00"):
             return Decimal("0.00")
-
         pct = (self.franking_credit / max_credit) * Decimal("100.00")
+        pct = min(pct, Decimal("100.00"))
         return pct.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
@@ -75,19 +82,26 @@ class BenchmarkRuleValidator:
             return True, []
 
         benchmark_pct = self.benchmark_percentage
+        if benchmark_pct is None:
+            return True, []
         violations: List[BenchmarkRuleViolation] = []
 
         for dist in self.distributions[1:]:
             actual_pct = dist.franking_percentage
             diff = actual_pct - benchmark_pct
 
-            if abs(diff) > Decimal("0.01"):
-                max_credit = dist.distribution_amount * (self.corporate_tax_rate / (Decimal("1.00") - self.corporate_tax_rate))
-                benchmark_credit = (benchmark_pct / Decimal("100.00")) * max_credit
+            # Compare in dollars at the event's own rate: a percentage-only
+            # comparison lets credit variances that scale with distribution
+            # size pass unnoticed. One cent of tolerance absorbs rounding.
+            max_credit = dist.maximum_franking_credit
+            benchmark_credit = (benchmark_pct / Decimal("100.00")) * max_credit
+            credit_diff = dist.franking_credit - benchmark_credit
 
-                if diff > Decimal("0.00"):
+            if abs(credit_diff) > Decimal("0.01"):
+
+                if credit_diff > Decimal("0.00"):
                     # Over-franking tax applies (s 203-50(1))
-                    over_credit = dist.franking_credit - benchmark_credit
+                    over_credit = credit_diff
                     violations.append(
                         BenchmarkRuleViolation(
                             event_date=dist.event_date,
@@ -102,7 +116,7 @@ class BenchmarkRuleValidator:
                     )
                 else:
                     # Franking debit arises (s 203-50(2))
-                    under_debit = benchmark_credit - dist.franking_credit
+                    under_debit = -credit_diff
                     violations.append(
                         BenchmarkRuleViolation(
                             event_date=dist.event_date,

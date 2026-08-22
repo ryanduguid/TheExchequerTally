@@ -15,11 +15,15 @@ class FrankingEntryType(str, Enum):
     PAYG_INSTALMENT = "PAYG_INSTALMENT"             # Item 1: Payment of PAYG instalment
     COMPANY_TAX_PAYMENT = "COMPANY_TAX_PAYMENT"     # Item 2: Payment of company tax assessment
     FRANKED_DISTRIBUTION_REC = "FRANKED_DIST_REC"   # Item 3: Receipt of franked distribution
+    FDT_LIABILITY = "FDT_LIABILITY"                 # s 205-15: Liability to franking deficit tax
 
     # Debits (s 205-30)
     FRANKED_DISTRIBUTION_PAID = "FRANKED_DIST_PAID" # Item 1: Franked distribution made
     TAX_REFUND = "TAX_REFUND"                       # Item 2: Receipt of tax refund
-    OVER_FRANKING_TAX = "OVER_FRANKING_TAX"         # Item 3: Debit arising from over-franking
+    # Item 3 is the UNDER-franking debit for a distribution franked below the
+    # benchmark in breach of the rule (s 203-50(2) shortfall). Over-franking
+    # instead attracts over-franking tax, a tax liability outside this ledger.
+    UNDER_FRANKING_DEBIT = "UNDER_FRANKING_DEBIT"
 
 
 @dataclass(frozen=True)
@@ -36,6 +40,7 @@ class FrankingEntry:
             FrankingEntryType.PAYG_INSTALMENT,
             FrankingEntryType.COMPANY_TAX_PAYMENT,
             FrankingEntryType.FRANKED_DISTRIBUTION_REC,
+            FrankingEntryType.FDT_LIABILITY,
         }
 
     @property
@@ -60,11 +65,17 @@ class FrankingAccount:
     opening_balance: Decimal = Decimal("0.00")
     entries: List[FrankingEntry] = field(default_factory=list)
 
+    @staticmethod
+    def _validated(amount: Decimal, what: str) -> Decimal:
+        if not amount.is_finite() or amount <= Decimal("0.00"):
+            raise ValueError(f"{what} must be a positive finite amount, got {amount}")
+        return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
     def record_payg_instalment(self, entry_date: date, amount: Decimal, description: str = "PAYG instalment paid") -> FrankingEntry:
         entry = FrankingEntry(
             entry_date=entry_date,
             entry_type=FrankingEntryType.PAYG_INSTALMENT,
-            amount=amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+            amount=self._validated(amount, "amount"),
             description=description,
             statutory_reference="s 205-15 Item 1 ITAA 1997",
         )
@@ -75,7 +86,7 @@ class FrankingAccount:
         entry = FrankingEntry(
             entry_date=entry_date,
             entry_type=FrankingEntryType.COMPANY_TAX_PAYMENT,
-            amount=amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+            amount=self._validated(amount, "amount"),
             description=description,
             statutory_reference="s 205-15 Item 2 ITAA 1997",
         )
@@ -86,7 +97,7 @@ class FrankingAccount:
         entry = FrankingEntry(
             entry_date=entry_date,
             entry_type=FrankingEntryType.FRANKED_DISTRIBUTION_REC,
-            amount=franking_credit.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+            amount=self._validated(franking_credit, "franking_credit"),
             description=description,
             statutory_reference="s 205-15 Item 3 ITAA 1997",
         )
@@ -97,7 +108,7 @@ class FrankingAccount:
         entry = FrankingEntry(
             entry_date=entry_date,
             entry_type=FrankingEntryType.FRANKED_DISTRIBUTION_PAID,
-            amount=franking_credit_attached.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+            amount=self._validated(franking_credit_attached, "franking_credit_attached"),
             description=description,
             statutory_reference="s 205-30 Item 1 ITAA 1997",
         )
@@ -108,9 +119,31 @@ class FrankingAccount:
         entry = FrankingEntry(
             entry_date=entry_date,
             entry_type=FrankingEntryType.TAX_REFUND,
-            amount=refund_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+            amount=self._validated(refund_amount, "refund_amount"),
             description=description,
             statutory_reference="s 205-30 Item 2 ITAA 1997",
+        )
+        self.entries.append(entry)
+        return entry
+
+    def record_under_franking_debit(self, entry_date: date, shortfall_amount: Decimal, description: str = "Under-franking debit (benchmark rule breach)") -> FrankingEntry:
+        entry = FrankingEntry(
+            entry_date=entry_date,
+            entry_type=FrankingEntryType.UNDER_FRANKING_DEBIT,
+            amount=self._validated(shortfall_amount, "shortfall_amount"),
+            description=description,
+            statutory_reference="s 205-30 Item 3 / s 203-50(2) ITAA 1997",
+        )
+        self.entries.append(entry)
+        return entry
+
+    def record_fdt_liability(self, entry_date: date, fdt_amount: Decimal, description: str = "Franking deficit tax liability incurred") -> FrankingEntry:
+        entry = FrankingEntry(
+            entry_date=entry_date,
+            entry_type=FrankingEntryType.FDT_LIABILITY,
+            amount=self._validated(fdt_amount, "fdt_amount"),
+            description=description,
+            statutory_reference="s 205-15 ITAA 1997 (liability to franking deficit tax)",
         )
         self.entries.append(entry)
         return entry
@@ -152,7 +185,7 @@ class FrankingAccount:
         threshold = credits_year * Decimal("0.10")
 
         # Check 10% threshold rule (s 205-70(6))
-        reduction_applies = credits_year > Decimal("0.00") and (fdt > threshold)
+        reduction_applies = fdt > threshold
 
         if reduction_applies:
             # 30% reduction penalty

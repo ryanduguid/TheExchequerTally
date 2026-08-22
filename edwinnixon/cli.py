@@ -1,5 +1,5 @@
 """
-CLI interface for EdwinNixon.
+CLI interface for The Exchequer Tally (package edwinnixon).
 """
 
 import argparse
@@ -7,7 +7,7 @@ import sys
 from datetime import date
 from decimal import Decimal
 from .decimal_args import decimal_type
-from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate
+from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, turnover_threshold_for
 from .franking_account import FrankingAccount
 from .distribution_statement import generate_distribution_statement
 
@@ -15,7 +15,7 @@ from .distribution_statement import generate_distribution_statement
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="edwinnixon",
-        description="EdwinNixon: Corporate Tax Rate & Franking Account Engine for Australian Companies",
+        description="The Exchequer Tally: corporate tax rate and franking account engine for Australian companies. Outputs are review aids, not tax advice.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
@@ -37,6 +37,17 @@ def main() -> int:
 
     args = parser.parse_args()
 
+    try:
+        return _dispatch(args, parser)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+NOT_ADVICE = "Not advice. Review aid only; confirm against current law before acting."
+
+
+def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     if args.command == "bre-test":
         test = BaseRateEntityTest(
             financial_year=args.fy,
@@ -48,11 +59,13 @@ def main() -> int:
         print("=" * 60)
         print(f"Base Rate Entity (BRE) Evaluation — FY{args.fy}")
         print("=" * 60)
-        print(f"Aggregated Turnover:     ${args.turnover:,.2f} (< $50M: {test.is_aggregated_turnover_eligible})")
+        threshold_m = turnover_threshold_for(args.fy) / Decimal("1000000")
+        print(f"Aggregated Turnover:     ${args.turnover:,.2f} (< ${threshold_m:.0f}M: {test.is_aggregated_turnover_eligible})")
         print(f"Passive Income Ratio:    {test.passive_income_percentage:.2f}% (<= 80%: {test.is_brepi_eligible})")
         print(f"Base Rate Entity:        {res.is_base_rate_entity}")
         print(f"Applicable Tax Rate:     {res.applicable_rate * 100:.1f}%")
         print(f"Statutory Basis:         {res.statutory_basis}")
+        print(NOT_ADVICE)
         print("=" * 60)
         return 0
 
@@ -76,6 +89,7 @@ def main() -> int:
         print(f"Franking Credit:         ${stmt.franking_credit:,.2f}")
         print(f"Franking Percentage:     {stmt.franking_percentage:.2f}%")
         print(f"Gross Assessable:        ${stmt.gross_assessable_income:,.2f}")
+        print(NOT_ADVICE)
         print("=" * 60)
         return 0
 
