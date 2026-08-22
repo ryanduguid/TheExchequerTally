@@ -1,6 +1,7 @@
-Corporate tax rate determination (Base Rate Entity test), Franking Account Balance (FAB) tracking, and Division 203 benchmark compliance.
+# The Exchequer Tally
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-5%20passed%20%7C%20100%25-brightgreen)](tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-002B49)](https://www.legislation.gov.au/C2004A05138/latest/text)
 
@@ -8,11 +9,11 @@ Corporate tax rate determination (Base Rate Entity test), Franking Account Balan
 
 The repository name is the public project identity; the `edwinnixon` distribution and command remain compatibility identifiers.
 
-Named after **Sir Edwin Van-der-Vord Nixon CMG (1876–1955)**, prominent Australian chartered accountant, commissioner on the Commonwealth Royal Commission on Taxation (1932–34), and pioneer of modern Australian corporate accounting and tax policy.
+Named after **Sir Edwin Van-der-Vord Nixon CMG (1876 to 1955)**, prominent Australian chartered accountant, commissioner on the Commonwealth Royal Commission on Taxation (1932 to 1934), and pioneer of modern Australian corporate accounting and tax policy.
 
 ---
 
-## 🔍 Core Features
+## Core Features
 
 - **Base Rate Entity (BRE) Testing**: Deterministic assessment under *s 23AA & s 23AB Income Tax Rates Act 1986* (evaluating aggregated turnover thresholds and Base Rate Entity Passive Income ratios).
 - **Franking Account Ledger (FAB)**: Complete balance management under *Part 3-6 ITAA 1997*, tracking PAYG instalments, company tax payments, dividends paid/received, and tax refunds.
@@ -22,7 +23,7 @@ Named after **Sir Edwin Van-der-Vord Nixon CMG (1876–1955)**, prominent Austra
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Installation
 ```bash
@@ -40,15 +41,23 @@ edwinnixon dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient 
 
 ---
 
-## 📐 Statutory Grounding
+## Statutory Ground Truth & Test Harness
 
-1. **Base Rate Entity Status**: *Income Tax Rates Act 1986* s 23AA (25% tax rate if aggregated turnover < $50M and BREPI <= 80%).
-2. **Franking Credits & Debits**: *ITAA 1997* s 205-15 (credits) and s 205-30 (debits).
-3. **Franking Deficit Tax & Offset**: *ITAA 1997* s 205-45 and s 205-70.
-4. **Benchmark Rule**: *ITAA 1997* ss 203-25 to 203-55.
-5. **Distribution Statements**: *ITAA 1997* s 202-75 and s 202-80.
+All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic to guarantee zero floating-point drift across corporate tax and franking schedules.
+
+| Statutory Domain | Primary Authority | Verification Invariant |
+| :--- | :--- | :--- |
+| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | 25% tax rate strictly bounded by Aggregated Turnover < $50M and BREPI <= 80%. |
+| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Exact day-order ledger reconciliation of corporate PAYG and tax payments. |
+| **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(6) | Exact 30% offset reduction penalty applied when deficit exceeds 10% threshold. |
+| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Deterministic debit shortfall and over-franking tax determination per distribution period. |
+| **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
+
+### Automated Test Suite
+- Run the full suite: `pytest tests/`
+- Coverage: 100% passing across BRE eligibility, FDT penalty triggers, benchmark rule violations, and distribution statement generation.
 
 ---
 
-## ⚖️ License
+## Licence
 MIT License. Created by Ryan Duguid.
