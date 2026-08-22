@@ -23,8 +23,16 @@ BRE_RATES: dict[int, Decimal] = {
 }
 
 STANDARD_CORPORATE_RATE = Decimal("0.300")
-TURNOVER_THRESHOLD = Decimal("50000000.00")  # $50M aggregated turnover threshold (s 328-115)
+# Aggregated turnover threshold under s 23AA(b) ITRA 1986. $25M for 2017-18
+# (Treasury Laws Amendment (Enterprise Tax Plan) Act 2017 Sch 1 Pt 2); $50M
+# from 2018-19 (Sch 1 Pt 3 item 16).
+TURNOVER_THRESHOLDS: dict[int, Decimal] = {2018: Decimal("25000000.00")}
+DEFAULT_TURNOVER_THRESHOLD = Decimal("50000000.00")
 BREPI_THRESHOLD_PERCENT = Decimal("80.00")    # Passive income must not exceed 80% (s 23AB)
+
+
+def turnover_threshold_for(fy: int) -> Decimal:
+    return TURNOVER_THRESHOLDS.get(fy, DEFAULT_TURNOVER_THRESHOLD)
 
 
 @dataclass(frozen=True)
@@ -34,8 +42,15 @@ class BaseRateEntityTest:
     assessable_income: Decimal
     passive_income: Decimal  # Base Rate Entity Passive Income (BREPI)
 
+    def __post_init__(self) -> None:
+        for name in ("aggregated_turnover", "assessable_income", "passive_income"):
+            value = getattr(self, name)
+            if not value.is_finite() or value < Decimal("0.00"):
+                raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
+
     @property
     def passive_income_percentage(self) -> Decimal:
+        """Display ratio, rounded to 2dp. The eligibility test compares exactly."""
         if self.assessable_income <= Decimal("0.00"):
             return Decimal("100.00")
         pct = (self.passive_income / self.assessable_income) * Decimal("100.00")
@@ -43,11 +58,18 @@ class BaseRateEntityTest:
 
     @property
     def is_aggregated_turnover_eligible(self) -> bool:
-        return self.aggregated_turnover < TURNOVER_THRESHOLD
+        return self.aggregated_turnover < turnover_threshold_for(self.financial_year)
 
     @property
     def is_brepi_eligible(self) -> bool:
-        return self.passive_income_percentage <= BREPI_THRESHOLD_PERCENT
+        # Exact comparison by cross-multiplication: rounding the ratio first
+        # would pass a company whose BREPI is just over the 80% limit.
+        if self.assessable_income <= Decimal("0.00"):
+            return False
+        return (
+            self.passive_income * Decimal("100.00")
+            <= BREPI_THRESHOLD_PERCENT * self.assessable_income
+        )
 
     @property
     def is_base_rate_entity(self) -> bool:
@@ -81,10 +103,14 @@ def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
     if fy not in BRE_RATES:
         raise ValueError(f"No legislated company-rate table exists for FY{fy}")
 
+    threshold_m = turnover_threshold_for(fy) / Decimal("1000000")
     if is_bre:
         rate = bre_rate_for(fy)
         desc = f"Base Rate Entity ({rate * 100:.1f}%)"
-        basis = "s 23AA Income Tax Rates Act 1986; turnover < $50M and BREPI <= 80%"
+        basis = (
+            f"s 23AA Income Tax Rates Act 1986; turnover < ${threshold_m:.0f}M "
+            "and BREPI <= 80%"
+        )
     else:
         rate = STANDARD_CORPORATE_RATE
         desc = "Standard Corporate Tax Rate (30.0%)"
@@ -104,17 +130,25 @@ def determine_max_franking_rate(
     prior_year_test: Optional[BaseRateEntityTest] = None,
 ) -> Decimal:
     """
-    Determine corporate tax rate for imputation / maximum franking rate under
-    s 202-60 / s 202-61 ITAA 1997.
+    Determine the corporate tax rate for imputation purposes (the maximum
+    franking rate) under s 995-1 ITAA 1997 and s 202-60.
 
-    The maximum franking rate for a distribution in year N is the corporate tax rate
-    determined based on the company's Base Rate Entity status in year N-1.
-    If the company did not exist in year N-1, the tax rate for year N is used.
+    The rate is the CURRENT year's corporate tax rate, worked out on the
+    assumption that the entity's aggregated turnover, BREPI and assessable
+    income for the current year equal the prior year's figures. Only the
+    amounts are assumed from the prior year; the rate scale and thresholds
+    are the current year's. A prior-year test is required; this function
+    refuses rather than assuming one.
     """
     if prior_year_test is None:
         raise ValueError(
             f"prior_year_test is required for FY{current_fy}; "
             "the maximum franking rate is not assumed"
         )
-    prior_res = determine_corporate_tax_rate(prior_year_test)
-    return prior_res.applicable_rate
+    assumed_current_year = BaseRateEntityTest(
+        financial_year=current_fy,
+        aggregated_turnover=prior_year_test.aggregated_turnover,
+        assessable_income=prior_year_test.assessable_income,
+        passive_income=prior_year_test.passive_income,
+    )
+    return determine_corporate_tax_rate(assumed_current_year).applicable_rate

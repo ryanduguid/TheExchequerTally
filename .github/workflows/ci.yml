@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.12"]
+        python: ["3.10", "3.12", "3.13"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -37,7 +37,6 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python }}
       - name: Typecheck
-        continue-on-error: true
         run: uv run --locked --extra dev mypy edwinnixon
         env:
           UV_PYTHON: ${{ matrix.python }}

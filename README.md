@@ -21,6 +21,13 @@ Named after **Sir Edwin Van-der-Vord Nixon CMG (1876 to 1955)**, prominent Austr
 - **Division 203 Benchmark Rule Engine**: Detects over-franking tax (*s 203-50(1)*) and franking debit shortfalls (*s 203-50(2)*) across distributions in a franking period.
 - **Dividend Distribution Statements**: Builds the statement fields required by *s 202-75 / s 202-80*. This is a review helper, not a lodgment and not a compliance certificate.
 
+## Not advice
+
+Nothing this engine produces is tax, legal or financial advice, an assessment
+or a determination. Outputs are review aids: confirm every rate, threshold and
+consequence against the current law and the entity's facts before acting, and
+leave lodgment decisions with a registered practitioner.
+
 ---
 
 ## Quickstart
@@ -47,14 +54,14 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 
 | Statutory Domain | Primary Authority | Verification Invariant |
 | :--- | :--- | :--- |
-| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | 25% tax rate strictly bounded by Aggregated Turnover < $50M and BREPI <= 80%. |
-| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Exact day-order ledger reconciliation of corporate PAYG and tax payments. |
+| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | BRE rate bounded by the year's aggregated-turnover threshold ($25M for FY2018, $50M from FY2019) and BREPI <= 80% compared exactly. |
+| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Cent-exact ledger of credits and debits (dates recorded for the workpaper; balances are order-independent sums). |
 | **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(6) | Exact 30% offset reduction penalty applied when deficit exceeds 10% threshold. |
 | **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Deterministic debit shortfall and over-franking tax determination per distribution period. |
 | **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
 
 ### Automated Test Suite
-- Run the full suite: `pytest tests/`
+- Run the full suite: `uv run --locked --extra dev pytest` (or `pip install .[dev]` then `pytest`; the configured coverage add-on needs the dev extras)
 - The suite covers BRE eligibility, FDT penalty triggers, benchmark-rule checks, and distribution-statement generation. Do not treat a static badge as live coverage.
 
 ---

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edwinnixon"
-version = "0.1.1"
+version = "0.1.2"
 description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,6 +13,21 @@ authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
 ]
 dependencies = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+
+[project.urls]
+Homepage = "https://github.com/ryanduguid/TheExchequerTally"
+Repository = "https://github.com/ryanduguid/TheExchequerTally.git"
+Issues = "https://github.com/ryanduguid/TheExchequerTally/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -20,6 +35,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.11",
     "mypy>=1.14",
+    "build>=1.2",
 ]
 
 [project.scripts]
