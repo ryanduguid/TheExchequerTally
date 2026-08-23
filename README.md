@@ -9,8 +9,6 @@
 
 The repository name is the public project identity; the `edwinnixon` distribution and command remain compatibility identifiers.
 
-Named after **Sir Edwin Van-der-Vord Nixon CMG (1876 to 1955)**, prominent Australian chartered accountant, commissioner on the Commonwealth Royal Commission on Taxation (1932 to 1934), and pioneer of modern Australian corporate accounting and tax policy.
-
 ---
 
 ## Core Features
