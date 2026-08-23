@@ -5,11 +5,21 @@ CLI interface for The Exchequer Tally (package edwinnixon).
 import argparse
 import sys
 from datetime import date
-from decimal import Decimal
-from .decimal_args import decimal_type
+from decimal import Decimal, InvalidOperation
 from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, turnover_threshold_for
 from .distribution_statement import generate_distribution_statement
 
+
+
+def decimal_type(value: str) -> Decimal:
+    """Fail-closed argparse type for Decimal money."""
+    try:
+        parsed = Decimal(value)
+    except (InvalidOperation, ValueError) as exc:
+        raise argparse.ArgumentTypeError(f"not a decimal amount: {value!r}") from exc
+    if not parsed.is_finite():
+        raise argparse.ArgumentTypeError(f"not a finite decimal amount: {value!r}")
+    return parsed
 
 def main() -> int:
     parser = argparse.ArgumentParser(
