@@ -8,7 +8,6 @@ from datetime import date
 from decimal import Decimal
 from .decimal_args import decimal_type
 from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, turnover_threshold_for
-from .franking_account import FrankingAccount
 from .distribution_statement import generate_distribution_statement
 
 
