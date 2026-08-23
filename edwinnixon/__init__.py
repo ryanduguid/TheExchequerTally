@@ -1,8 +1,7 @@
 """
 The Exchequer Tally: corporate tax rate, franking account and Division 203
 benchmark engine for Australian companies. The distribution keeps its
-package name `edwinnixon`, after Sir Edwin Van-der-Vord Nixon CMG
-(1876-1955), pioneer of Australian corporate accounting and taxation policy.
+package name `edwinnixon` as a compatibility identifier.
 
 Outputs are review aids, not tax advice or determinations.
 """
