@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 
 class FrankingEntryType(str, Enum):
