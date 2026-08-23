@@ -59,7 +59,7 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 | **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | BRE rate bounded by the year's aggregated-turnover threshold ($25M for FY2018, $50M from FY2019) and BREPI <= 80% compared exactly. |
 | **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Cent-exact ledger of credits and debits (dates recorded for the workpaper; balances are order-independent sums). |
 | **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(6) | Exact 30% offset reduction penalty applied when deficit exceeds 10% threshold. |
-| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Deterministic debit shortfall and over-franking tax determination per distribution period. |
+| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Benchmark set by the first frankable distribution in the franking period (*s 203-30*), then one deterministic shortfall or over-franking result per later distribution. |
 | **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
 
 ### Automated Test Suite
