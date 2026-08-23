@@ -28,6 +28,8 @@ or a determination. Outputs are review aids: confirm every rate, threshold and
 consequence against the current law and the entity's facts before acting, and
 leave lodgment decisions with a registered practitioner.
 
+Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
+
 ---
 
 ## Quickstart
