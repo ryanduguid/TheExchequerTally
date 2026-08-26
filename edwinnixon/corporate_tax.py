@@ -85,15 +85,6 @@ class CorporateTaxRate:
     statutory_basis: str
 
 
-def bre_rate_for(fy: int) -> Decimal:
-    try:
-        return BRE_RATES[fy]
-    except KeyError as exc:
-        raise ValueError(
-            f"No legislated BRE rate is tabulated for FY{fy}"
-        ) from exc
-
-
 def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
     """
     Determine the company tax rate under s23AA Income Tax Rates Act 1986.
@@ -105,7 +96,7 @@ def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
 
     threshold_m = turnover_threshold_for(fy) / Decimal("1000000")
     if is_bre:
-        rate = bre_rate_for(fy)
+        rate = BRE_RATES[fy]
         desc = f"Base Rate Entity ({rate * 100:.1f}%)"
         basis = (
             f"s 23AA Income Tax Rates Act 1986; turnover < ${threshold_m:.0f}M "
