@@ -2,7 +2,7 @@ import pytest
 from datetime import date
 from decimal import Decimal
 from edwinnixon.corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, determine_max_franking_rate
-from edwinnixon.franking_account import FrankingAccount, FrankingEntryType
+from edwinnixon.franking_account import FrankingAccount
 from edwinnixon.benchmark_rule import BenchmarkRuleValidator, DistributionEvent
 from edwinnixon.distribution_statement import generate_distribution_statement
 
