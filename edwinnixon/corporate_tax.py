@@ -49,10 +49,14 @@ class BaseRateEntityTest:
                 raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
 
     @property
-    def passive_income_percentage(self) -> Decimal:
-        """Display ratio, rounded to 2dp. The eligibility test compares exactly."""
+    def passive_income_percentage(self) -> Optional[Decimal]:
+        """
+        Display ratio, rounded to 2dp. The eligibility test compares exactly.
+        None where there is no assessable income: the ratio has no denominator,
+        and reporting a figure states a passive proportion that was never worked out.
+        """
         if self.assessable_income <= Decimal("0.00"):
-            return Decimal("100.00")
+            return None
         pct = (self.passive_income / self.assessable_income) * Decimal("100.00")
         return pct.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
@@ -63,9 +67,10 @@ class BaseRateEntityTest:
     @property
     def is_brepi_eligible(self) -> bool:
         # Exact comparison by cross-multiplication: rounding the ratio first
-        # would pass a company whose BREPI is just over the 80% limit.
-        if self.assessable_income <= Decimal("0.00"):
-            return False
+        # would pass a company whose BREPI is just over the 80% limit. With no
+        # assessable income the s 23AA comparison is 0 <= 0, which is
+        # satisfied, not unmet, so a dormant company's rate turns on the
+        # turnover test alone.
         return (
             self.passive_income * Decimal("100.00")
             <= BREPI_THRESHOLD_PERCENT * self.assessable_income

@@ -1,5 +1,5 @@
 """
-CLI interface for The Exchequer Tally (package edwinnixon).
+CLI interface for The Exchequer Tally (import package edwinnixon).
 """
 
 import argparse
@@ -23,7 +23,7 @@ def decimal_type(value: str) -> Decimal:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="edwinnixon",
+        prog="the-exchequer-tally",
         description="The Exchequer Tally: corporate tax rate and franking account engine for Australian companies. Outputs are review aids, not tax advice.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
@@ -70,7 +70,9 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         print("=" * 60)
         threshold_m = turnover_threshold_for(args.fy) / Decimal("1000000")
         print(f"Aggregated Turnover:     ${args.turnover:,.2f} (< ${threshold_m:.0f}M: {test.is_aggregated_turnover_eligible})")
-        print(f"Passive Income Ratio:    {test.passive_income_percentage:.2f}% (<= 80%: {test.is_brepi_eligible})")
+        passive_pct = test.passive_income_percentage
+        passive_display = "n/a (no assessable income)" if passive_pct is None else f"{passive_pct:.2f}%"
+        print(f"Passive Income Ratio:    {passive_display} (<= 80%: {test.is_brepi_eligible})")
         print(f"Base Rate Entity:        {res.is_base_rate_entity}")
         print(f"Applicable Tax Rate:     {res.applicable_rate * 100:.1f}%")
         print(f"Statutory Basis:         {res.statutory_basis}")
@@ -91,6 +93,8 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         print("=" * 60)
         print(f"Australian Dividend Distribution Statement — {stmt.entity_name}")
         print("=" * 60)
+        # s 202-75(2)(a): the statement must identify the entity making the distribution.
+        print(f"ACN/ABN:                 {stmt.abn_or_acn}")
         print(f"Recipient:               {stmt.recipient_name}")
         print(f"Payment Date:            {stmt.payment_date.isoformat()}")
         print(f"Franked Dividend Amount: ${stmt.franked_amount:,.2f}")

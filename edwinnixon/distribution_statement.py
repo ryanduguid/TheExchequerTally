@@ -44,6 +44,10 @@ def generate_distribution_statement(
     """
     if not total_distribution.is_finite() or total_distribution <= Decimal("0.00"):
         raise ValueError(f"total_distribution must be a positive finite amount, got {total_distribution}")
+    # Whole cents only: the franked and unfranked halves are each stated to the cent,
+    # so a sub-cent total is split into halves that do not add back to it.
+    if total_distribution != total_distribution.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP):
+        raise ValueError(f"total_distribution must be a whole number of cents, got {total_distribution}")
     if not (Decimal("0.00") <= franking_percentage <= Decimal("100.00")):
         raise ValueError(f"franking_percentage must be between 0 and 100, got {franking_percentage}")
     if not (Decimal("0.00") < corporate_tax_rate < Decimal("1.00")):
