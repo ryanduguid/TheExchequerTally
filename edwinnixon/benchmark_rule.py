@@ -96,27 +96,34 @@ class BenchmarkRuleValidator:
     @property
     def benchmark_percentage(self) -> Optional[Decimal]:
         """
-        The benchmark percentage is set by the first frankable distribution in the period (s 203-30).
+        The benchmark percentage is set by the first frankable distribution in
+        the period (s 203-30). A zero-amount event distributes nothing, so it
+        is not a frankable distribution and must not set a 0% benchmark that
+        turns every later credited distribution into a breach.
         """
-        ordered = self._in_date_order()
-        if not ordered:
-            return None
-        return ordered[0].franking_percentage
+        for event in self._in_date_order():
+            if event.distribution_amount > Decimal("0.00"):
+                return event.franking_percentage
+        return None
 
     def validate_distributions(self) -> Tuple[bool, List[BenchmarkRuleViolation]]:
         """
         Check all subsequent distributions against the established benchmark percentage.
         """
         ordered = self._in_date_order()
-        if not ordered:
+        start = next(
+            (i for i, e in enumerate(ordered) if e.distribution_amount > Decimal("0.00")),
+            None,
+        )
+        if start is None:
             return True, []
 
-        benchmark = ordered[0]
+        benchmark = ordered[start]
         benchmark_pct = benchmark.franking_percentage
         benchmark_ratio = benchmark.franking_ratio
         violations: List[BenchmarkRuleViolation] = []
 
-        for dist in ordered[1:]:
+        for dist in ordered[start + 1:]:
             actual_pct = dist.franking_percentage
             diff = actual_pct - benchmark_pct
 

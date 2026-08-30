@@ -67,9 +67,10 @@ class BaseRateEntityTest:
     @property
     def is_brepi_eligible(self) -> bool:
         # Exact comparison by cross-multiplication: rounding the ratio first
-        # would pass a company whose BREPI is just over the 80% limit.
-        if self.assessable_income <= Decimal("0.00"):
-            return False
+        # would pass a company whose BREPI is just over the 80% limit. With no
+        # assessable income the s 23AA comparison is 0 <= 0, which is
+        # satisfied, not unmet, so a dormant company's rate turns on the
+        # turnover test alone.
         return (
             self.passive_income * Decimal("100.00")
             <= BREPI_THRESHOLD_PERCENT * self.assessable_income
@@ -109,15 +110,7 @@ def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
     else:
         rate = STANDARD_CORPORATE_RATE
         desc = "Standard Corporate Tax Rate (30.0%)"
-        if test.assessable_income <= Decimal("0.00"):
-            # No denominator, so the s 23AB BREPI test is not met on these figures.
-            # Saying a threshold was exceeded would state a ratio never worked out.
-            basis = (
-                "s 23(2) Income Tax Rates Act 1986; no assessable income, so the BREPI "
-                "test cannot be met and base rate entity status is not established"
-            )
-        else:
-            basis = "s 23(2) Income Tax Rates Act 1986; exceeds turnover or BREPI threshold"
+        basis = "s 23(2) Income Tax Rates Act 1986; exceeds turnover or BREPI threshold"
 
     return CorporateTaxRate(
         financial_year=fy,

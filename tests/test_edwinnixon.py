@@ -442,6 +442,9 @@ def test_distribution_event_refuses_negative_and_out_of_range_inputs():
 
 
 def test_zero_assessable_income_has_no_passive_ratio():
+    # s 23AA compares BREPI against 80% of assessable income. With both nil
+    # that comparison is 0 <= 0, satisfied, so the rate turns on the turnover
+    # test alone; only the display ratio has no denominator and reads n/a.
     nil_income = BaseRateEntityTest(
         financial_year=2025,
         aggregated_turnover=Decimal("1000000.00"),
@@ -449,12 +452,20 @@ def test_zero_assessable_income_has_no_passive_ratio():
         passive_income=Decimal("0.00"),
     )
     assert nil_income.passive_income_percentage is None
-    assert nil_income.is_brepi_eligible is False
+    assert nil_income.is_brepi_eligible is True
     res = determine_corporate_tax_rate(nil_income)
-    assert res.is_base_rate_entity is False
-    assert res.applicable_rate == Decimal("0.300")
-    assert "no assessable income" in res.statutory_basis
-    assert "exceeds" not in res.statutory_basis
+    assert res.is_base_rate_entity is True
+    assert res.applicable_rate == Decimal("0.250")
+    assert "BREPI <= 80%" in res.statutory_basis
+
+    # Passive income alongside no assessable income exceeds 80% of it.
+    phantom_passive = BaseRateEntityTest(
+        financial_year=2025,
+        aggregated_turnover=Decimal("1000000.00"),
+        assessable_income=Decimal("0.00"),
+        passive_income=Decimal("10.00"),
+    )
+    assert phantom_passive.is_brepi_eligible is False
 
 
 def test_cli_reports_no_passive_ratio_without_assessable_income(monkeypatch, capsys):
@@ -464,9 +475,9 @@ def test_cli_reports_no_passive_ratio_without_assessable_income(monkeypatch, cap
     ])
     assert main() == 0
     out = capsys.readouterr().out
-    assert "Passive Income Ratio:    n/a (no assessable income) (<= 80%: False)" in out
+    assert "Passive Income Ratio:    n/a (no assessable income) (<= 80%: True)" in out
     assert "100.00%" not in out
-    assert "no assessable income, so the BREPI test cannot be met" in out
+    assert "BREPI <= 80%" in out
 
 
 def test_cli_distribution_statement_states_the_acn(monkeypatch, capsys):
@@ -498,3 +509,27 @@ def test_sub_cent_total_distribution_is_refused():
             f"sub-cent total accepted: franked {stmt.franked_amount}, "
             f"unfranked {stmt.unfranked_amount}"
         )
+
+
+def test_zero_amount_event_sets_no_benchmark():
+    # s 203-30: the benchmark comes from the first frankable distribution. A
+    # $0 event distributes nothing, so an earlier-dated one must not set a 0%
+    # benchmark that turns every later credited distribution into a breach.
+    validator = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.30"))
+    validator.add_distribution(DistributionEvent(
+        event_date=date(2024, 7, 1),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+    ))
+    for name, day in (("A", 2), ("B", 3)):
+        validator.add_distribution(DistributionEvent(
+            event_date=date(2024, 7, day),
+            recipient_name=name,
+            distribution_amount=Decimal("70000.00"),
+            franking_credit=Decimal("30000.00"),
+        ))
+    assert validator.benchmark_percentage == Decimal("100.00")
+    compliant, violations = validator.validate_distributions()
+    assert compliant is True
+    assert violations == []
