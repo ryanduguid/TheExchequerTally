@@ -1,10 +1,12 @@
 import pytest
+import sys
 from datetime import date
 from decimal import Decimal
 from edwinnixon.corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, determine_max_franking_rate
 from edwinnixon.franking_account import FrankingAccount
 from edwinnixon.benchmark_rule import BenchmarkRuleValidator, DistributionEvent
 from edwinnixon.distribution_statement import generate_distribution_statement
+from edwinnixon.cli import main
 
 def test_base_rate_entity_eligibility():
     # Eligible BRE (< $50M and passive <= 80%)
@@ -306,3 +308,228 @@ def test_benchmark_comparison_works_in_dollars():
     ok, violations = validator.validate_distributions()
     assert not ok
     assert violations[0].consequence_type == "OVER_FRANKING_TAX"
+
+
+def test_events_without_a_rate_take_the_validators_rate():
+    # A 30% company: $70,000 distributed carries a maximum franking credit of
+    # $30,000 under s 202-60, not the $23,333.33 the 25% base rate would give.
+    validator = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.30"))
+    validator.add_distribution(DistributionEvent(
+        event_date=date(2024, 9, 30),
+        recipient_name="A",
+        distribution_amount=Decimal("70000.00"),
+        franking_credit=Decimal("30000.00"),
+    ))
+    assert validator.distributions[0].maximum_franking_credit == Decimal("30000.00")
+    assert validator.benchmark_percentage == Decimal("100.00")
+
+    validator.add_distribution(DistributionEvent(
+        event_date=date(2025, 3, 31),
+        recipient_name="B",
+        distribution_amount=Decimal("70000.00"),
+        franking_credit=Decimal("15000.00"),
+    ))
+    ok, violations = validator.validate_distributions()
+    assert not ok
+    assert violations[0].consequence_type == "FRANKING_DEBIT"
+    assert violations[0].penalty_or_debit_amount == Decimal("15000.00")
+
+    # An event that states its own rate keeps it.
+    validator.add_distribution(DistributionEvent(
+        event_date=date(2025, 6, 30),
+        recipient_name="C",
+        distribution_amount=Decimal("70000.00"),
+        franking_credit=Decimal("15000.00"),
+        corporate_tax_rate=Decimal("0.25"),
+    ))
+    assert validator.distributions[2].corporate_tax_rate == Decimal("0.25")
+
+
+def test_equally_franked_distributions_are_compliant_at_any_size():
+    # The benchmark is the exact ratio, not the 2dp display percentage: a
+    # 49.99992% franked distribution displays as 50.00%, and a benchmark credit
+    # taken from the displayed figure made two identical distributions breach.
+    identical = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
+    for recipient, day in (("A", date(2024, 9, 30)), ("B", date(2024, 12, 31))):
+        identical.add_distribution(DistributionEvent(
+            event_date=day,
+            recipient_name=recipient,
+            distribution_amount=Decimal("50000.00"),
+            franking_credit=Decimal("8333.32"),
+        ))
+    ok, violations = identical.validate_distributions()
+    assert ok, violations
+    assert identical.benchmark_percentage == Decimal("50.00")
+
+    # Same franking ratio, ten times the distribution: the rounded benchmark
+    # understated the second credit by $111.10, which scales with the dollars.
+    scaled = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
+    scaled.add_distribution(DistributionEvent(
+        event_date=date(2024, 9, 30),
+        recipient_name="A",
+        distribution_amount=Decimal("1000000.00"),
+        franking_credit=Decimal("111111.11"),
+    ))
+    scaled.add_distribution(DistributionEvent(
+        event_date=date(2024, 12, 31),
+        recipient_name="B",
+        distribution_amount=Decimal("10000000.00"),
+        franking_credit=Decimal("1111111.10"),
+    ))
+    ok, violations = scaled.validate_distributions()
+    assert ok, violations
+
+
+def test_benchmark_is_keyed_to_the_earliest_distribution():
+    # s 203-30 sets the benchmark by the FIRST distribution in the franking
+    # period, so the result cannot depend on the order events were added.
+    early = DistributionEvent(
+        event_date=date(2024, 9, 30),
+        recipient_name="A",
+        distribution_amount=Decimal("75000.00"),
+        franking_credit=Decimal("25000.00"),  # 100% franked
+    )
+    late = DistributionEvent(
+        event_date=date(2025, 3, 31),
+        recipient_name="B",
+        distribution_amount=Decimal("75000.00"),
+        franking_credit=Decimal("12500.00"),  # 50% franked
+    )
+    in_order = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
+    in_order.add_distribution(early)
+    in_order.add_distribution(late)
+    reversed_order = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
+    reversed_order.add_distribution(late)
+    reversed_order.add_distribution(early)
+
+    assert in_order.benchmark_percentage == Decimal("100.00")
+    assert reversed_order.benchmark_percentage == Decimal("100.00")
+    ok_in_order, violations_in_order = in_order.validate_distributions()
+    ok_reversed, violations_reversed = reversed_order.validate_distributions()
+    assert ok_in_order is False
+    assert ok_reversed is False
+    assert violations_reversed == violations_in_order
+    assert violations_reversed[0].recipient_name == "B"
+    assert violations_reversed[0].consequence_type == "FRANKING_DEBIT"
+    assert violations_reversed[0].penalty_or_debit_amount == Decimal("12500.00")
+
+
+def test_distribution_event_refuses_negative_and_out_of_range_inputs():
+    try:
+        event = DistributionEvent(
+            event_date=date(2025, 1, 15),
+            recipient_name="A",
+            distribution_amount=Decimal("75000.00"),
+            franking_credit=Decimal("-25000.00"),
+        )
+    except ValueError as exc:
+        assert "franking_credit" in str(exc)
+    else:
+        raise AssertionError(f"negative credit accepted: benchmark {event.franking_percentage}%")
+
+    # A 100% rate divides by zero in the s 202-60 maximum: rate / (1 - rate).
+    with pytest.raises(ValueError):
+        _ = DistributionEvent(
+            event_date=date(2025, 1, 15),
+            recipient_name="A",
+            distribution_amount=Decimal("75000.00"),
+            franking_credit=Decimal("25000.00"),
+            corporate_tax_rate=Decimal("1.00"),
+        ).maximum_franking_credit
+
+    with pytest.raises(ValueError):
+        FrankingAccount(financial_year=2025, opening_balance=Decimal("NaN"))
+
+
+def test_zero_assessable_income_has_no_passive_ratio():
+    # s 23AA compares BREPI against 80% of assessable income. With both nil
+    # that comparison is 0 <= 0, satisfied, so the rate turns on the turnover
+    # test alone; only the display ratio has no denominator and reads n/a.
+    nil_income = BaseRateEntityTest(
+        financial_year=2025,
+        aggregated_turnover=Decimal("1000000.00"),
+        assessable_income=Decimal("0.00"),
+        passive_income=Decimal("0.00"),
+    )
+    assert nil_income.passive_income_percentage is None
+    assert nil_income.is_brepi_eligible is True
+    res = determine_corporate_tax_rate(nil_income)
+    assert res.is_base_rate_entity is True
+    assert res.applicable_rate == Decimal("0.250")
+    assert "BREPI <= 80%" in res.statutory_basis
+
+    # Passive income alongside no assessable income exceeds 80% of it.
+    phantom_passive = BaseRateEntityTest(
+        financial_year=2025,
+        aggregated_turnover=Decimal("1000000.00"),
+        assessable_income=Decimal("0.00"),
+        passive_income=Decimal("10.00"),
+    )
+    assert phantom_passive.is_brepi_eligible is False
+
+
+def test_cli_reports_no_passive_ratio_without_assessable_income(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", [
+        "edwinnixon", "bre-test", "--fy", "2025",
+        "--turnover", "1000000", "--assessable", "0", "--passive", "0",
+    ])
+    assert main() == 0
+    out = capsys.readouterr().out
+    assert "Passive Income Ratio:    n/a (no assessable income) (<= 80%: True)" in out
+    assert "100.00%" not in out
+    assert "BREPI <= 80%" in out
+
+
+def test_cli_distribution_statement_states_the_acn(monkeypatch, capsys):
+    # s 202-75(2): the statement identifies the entity making the distribution.
+    monkeypatch.setattr(sys, "argv", [
+        "edwinnixon", "dist-statement", "--entity", "Acme Pty Ltd", "--acn", "123 456 789",
+        "--recipient", "Jane Doe", "--amount", "15000", "--franking-pct", "100",
+        "--tax-rate", "0.25",
+    ])
+    assert main() == 0
+    out = capsys.readouterr().out
+    assert "ACN/ABN:                 123 456 789" in out
+
+
+def test_sub_cent_total_distribution_is_refused():
+    try:
+        stmt = generate_distribution_statement(
+            entity_name="X Pty Ltd",
+            abn_or_acn="12 345 678 901",
+            recipient_name="Y",
+            payment_date=date(2025, 1, 1),
+            total_distribution=Decimal("100.005"),
+            franking_percentage=Decimal("100.00"),
+        )
+    except ValueError as exc:
+        assert "whole number of cents" in str(exc)
+    else:
+        raise AssertionError(
+            f"sub-cent total accepted: franked {stmt.franked_amount}, "
+            f"unfranked {stmt.unfranked_amount}"
+        )
+
+
+def test_zero_amount_event_sets_no_benchmark():
+    # s 203-30: the benchmark comes from the first frankable distribution. A
+    # $0 event distributes nothing, so an earlier-dated one must not set a 0%
+    # benchmark that turns every later credited distribution into a breach.
+    validator = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.30"))
+    validator.add_distribution(DistributionEvent(
+        event_date=date(2024, 7, 1),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+    ))
+    for name, day in (("A", 2), ("B", 3)):
+        validator.add_distribution(DistributionEvent(
+            event_date=date(2024, 7, day),
+            recipient_name=name,
+            distribution_amount=Decimal("70000.00"),
+            franking_credit=Decimal("30000.00"),
+        ))
+    assert validator.benchmark_percentage == Decimal("100.00")
+    compliant, violations = validator.validate_distributions()
+    assert compliant is True
+    assert violations == []
