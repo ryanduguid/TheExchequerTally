@@ -65,6 +65,12 @@ class FrankingAccount:
     opening_balance: Decimal = Decimal("0.00")
     entries: List[FrankingEntry] = field(default_factory=list)
 
+    def __post_init__(self) -> None:
+        # A deficit opening balance is legitimate; a NaN or infinite one is not,
+        # and would otherwise surface as InvalidOperation when the balance quantizes.
+        if not self.opening_balance.is_finite():
+            raise ValueError(f"opening_balance must be a finite amount, got {self.opening_balance}")
+
     @staticmethod
     def _validated(amount: Decimal, what: str) -> Decimal:
         if not amount.is_finite() or amount <= Decimal("0.00"):

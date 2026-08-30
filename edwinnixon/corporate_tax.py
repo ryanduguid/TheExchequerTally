@@ -49,10 +49,14 @@ class BaseRateEntityTest:
                 raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
 
     @property
-    def passive_income_percentage(self) -> Decimal:
-        """Display ratio, rounded to 2dp. The eligibility test compares exactly."""
+    def passive_income_percentage(self) -> Optional[Decimal]:
+        """
+        Display ratio, rounded to 2dp. The eligibility test compares exactly.
+        None where there is no assessable income: the ratio has no denominator,
+        and reporting a figure states a passive proportion that was never worked out.
+        """
         if self.assessable_income <= Decimal("0.00"):
-            return Decimal("100.00")
+            return None
         pct = (self.passive_income / self.assessable_income) * Decimal("100.00")
         return pct.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
@@ -105,7 +109,15 @@ def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
     else:
         rate = STANDARD_CORPORATE_RATE
         desc = "Standard Corporate Tax Rate (30.0%)"
-        basis = "s 23(2) Income Tax Rates Act 1986; exceeds turnover or BREPI threshold"
+        if test.assessable_income <= Decimal("0.00"):
+            # No denominator, so the s 23AB BREPI test is not met on these figures.
+            # Saying a threshold was exceeded would state a ratio never worked out.
+            basis = (
+                "s 23(2) Income Tax Rates Act 1986; no assessable income, so the BREPI "
+                "test cannot be met and base rate entity status is not established"
+            )
+        else:
+            basis = "s 23(2) Income Tax Rates Act 1986; exceeds turnover or BREPI threshold"
 
     return CorporateTaxRate(
         financial_year=fy,
