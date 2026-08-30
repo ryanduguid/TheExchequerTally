@@ -1,7 +1,7 @@
 """
 The Exchequer Tally: corporate tax rate, franking account and Division 203
-benchmark engine for Australian companies. The distribution keeps its
-package name `edwinnixon` as a compatibility identifier.
+benchmark engine for Australian companies. The distribution is
+`the-exchequer-tally`; the import package remains `edwinnixon`.
 
 Outputs are review aids, not tax advice or determinations.
 """
@@ -9,7 +9,7 @@ Outputs are review aids, not tax advice or determinations.
 from importlib.metadata import PackageNotFoundError, version as _dist_version
 
 try:
-    __version__ = _dist_version("edwinnixon")
+    __version__ = _dist_version("the-exchequer-tally")
 except PackageNotFoundError:  # running from a source tree without installation
     __version__ = "0.0.0.dev0"
 __author__ = "Ryan Duguid"

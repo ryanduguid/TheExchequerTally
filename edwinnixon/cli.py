@@ -1,5 +1,5 @@
 """
-CLI interface for The Exchequer Tally (package edwinnixon).
+CLI interface for The Exchequer Tally (import package edwinnixon).
 """
 
 import argparse
@@ -23,7 +23,7 @@ def decimal_type(value: str) -> Decimal:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="edwinnixon",
+        prog="the-exchequer-tally",
         description="The Exchequer Tally: corporate tax rate and franking account engine for Australian companies. Outputs are review aids, not tax advice.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
