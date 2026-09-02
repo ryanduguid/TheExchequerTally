@@ -1,5 +1,15 @@
 # The Exchequer Tally
 
+> [!IMPORTANT]
+> **Repository migration: 2 September 2026.** We moved maintained development to
+> [`packages/the-exchequer-tally`](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-exchequer-tally)
+> in Australian Accounting. The first replacement release is
+> [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-exchequer-tally/v0.1.3).
+>
+> Keep this repository's [`v0.1.2`](https://github.com/ryanduguid/TheExchequerTally/releases/tag/v0.1.2)
+> as the rollback release until the fourteen-day observation window closes on
+> 16 September 2026. Open new issues and pull requests in Australian Accounting.
+
 ```
 +----------------------------------------------------------------------+
 |                          TheExchequerTally                           |
