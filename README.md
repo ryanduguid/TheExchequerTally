@@ -31,8 +31,16 @@
 
 **Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
 
-**Package lifecycle:** source-only. Install from this repository; it is not
-published to PyPI.
+**Historical source (v0.1.2).**
+
+**Package lifecycle:** source-only. The retained v0.1.2 source in this repository
+was not published to PyPI.
+
+For maintained installs, use
+[`the-exchequer-tally` 0.1.3 on PyPI](https://pypi.org/project/the-exchequer-tally/0.1.3/),
+which we publish from
+[`packages/the-exchequer-tally`](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-exchequer-tally)
+in Australian Accounting. The source installation below remains available for rollback.
 
 The `the-exchequer-tally` distribution and command match the project identity.
 The `edwinnixon` import package remains unchanged, so internal Python imports do
@@ -61,7 +69,7 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Quickstart
 
-### Installation
+### Historical source installation
 ```bash
 git clone https://github.com/ryanduguid/TheExchequerTally.git
 cd TheExchequerTally
